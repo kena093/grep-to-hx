@@ -10,14 +10,20 @@ fi
 
 THIS_SCRIPT=$(realpath "$0")
 
+CURRENT_REL_HOME="${PWD/#$HOME/\~}"
+
+[[ "$CURRENT_REL_HOME" != */ ]] && CURRENT_REL_HOME="${CURRENT_REL_HOME}/"
 read -p "Search for: " KEYWORD
-[[ -z "$KEYWORD" ]] && exit 0
+KEYWORD=${KEYWORD:-"."}
 
-read -e -p "Base directory: " TARGET_DIR
+read -p "Search for "$KEYWORD" in files matching wildcard (default all): " GLOB
+GLOB=${GLOB:-"*"}
+
+read -e -i "./" -p "Base directory: " TARGET_DIR
+
 TARGET_DIR=${TARGET_DIR:-.}
-TARGET_DIR="${TARGET_DIR/#\~/$HOME}"
 
-rg --color=always --line-number --no-heading --smart-case "$KEYWORD" "$TARGET_DIR" | \
+rg --color=always --line-number --no-heading --smart-case -g "$GLOB" "$KEYWORD" "$TARGET_DIR" | \
   fzf --ansi \
       --delimiter ':' \
       --preview 'batcat --style=numbers --color=always --highlight-line {2} {1}' \
